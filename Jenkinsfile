@@ -2,31 +2,30 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'mydockerhub12'
-        IMAGE_NAME = 'netflix-clone'
+        DOCKER_HUB_CREDENTIALS = 'dockerhub'
+        DOCKER_IMAGE = 'faizofficial/netflix-clone'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/Faiz-official/netflix-clone.git'
+                git branch: 'main', url: 'https://github.com/Faiz-official/netflix-clone.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${DOCKER_HUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER}")
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                withDockerRegistry([credentialsId: 'dockerhub-credentials', url: '']) {
-                    script {
-                        dockerImage.push()
-                        dockerImage.push('latest')
+                script {
+                    docker.withRegistry('', DOCKER_HUB_CREDENTIALS) {
+                        sh 'docker push $DOCKER_IMAGE'
                     }
                 }
             }
@@ -35,8 +34,8 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    sh 'docker stop netflix || true && docker rm netflix || true'
-                    sh "docker run -d --name netflix -p 8080:80 ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+                    sh 'docker stop netflix-clone || true && docker rm netflix-clone || true'
+                    sh 'docker run -d -p 3000:3000 --name netflix-clone $DOCKER_IMAGE'
                 }
             }
         }
@@ -44,11 +43,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Netflix clone deployed successfully!'
+            echo '✅ Deployment Successful!'
         }
         failure {
             echo '❌ Build failed!'
         }
     }
 }
-
