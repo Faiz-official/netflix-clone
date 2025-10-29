@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'Faiz_Ali'
+        DOCKER_HUB_USER = 'mydockerhub12'
         IMAGE_NAME = 'netflix-clone'
     }
 
