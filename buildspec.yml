@@ -2,29 +2,26 @@ version: 0.2
 
 env:
   variables:
-    AWS_DEFAULT_REGION: ap-south-1
-    IMAGE_REPO_NAME: netflix-clone
+    AWS_REGION: ap-south-1
+    ECR_REPOSITORY_URI: 128572030294.dkr.ecr.ap-south-1.amazonaws.com/netflix-clone
     IMAGE_TAG: latest
 
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
-
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 128572030294.dkr.ecr.ap-south-1.amazonaws.com
   build:
     commands:
       - echo Building Docker image...
-      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
+      - docker build -t netflix-clone .
+      - docker tag netflix-clone:$IMAGE_TAG $ECR_REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo Pushing Docker image...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Build completed.
+      - echo Pushing Docker image to ECR...
+      - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
+      - echo Build completed successfully.
 
 artifacts:
   files:
